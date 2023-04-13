@@ -1,35 +1,43 @@
 const express = require('express');
-const mongodb = require('mongodb');
+const { MongoClient } = require('mongodb');
+
 const app = express();
+const port = 3000;
 
-// Connection URI and database name
-const uri = 'mongodb+srv://umairdada:04l4VOrpogsaIZtw@cluster0.0synoa4.mongodb.net/test';
-const dbName = 'webstore';
+// Middleware to parse request bodies as JSON
+app.use(express.json());
 
-// Create a new MongoClient
-const client = new mongodb.MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+// Set up CORS headers to allow cross-origin requests
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
 
-// Connect to the server and start the Express server once connected
-client.connect(err => {
-  if (err) {
-    console.error(err);
-  } else {
-    console.log('Connected to MongoDB');
-    app.listen(3000, () => {
-      console.log('Express server started on port 3000');
+// Connect to the MongoDB database
+MongoClient.connect('mongodb+srv://umairdada:04l4VOrpogsaIZtw@cluster0.0synoa4.mongodb.net/test', { useNewUrlParser: true })
+  .then((client) => {
+    const db = client.db('webstore');
+
+    // Define a route to retrieve all products
+    app.get('/products', (req, res, next) => {
+      const collection = db.collection('products');
+
+      collection.find({}).toArray()
+        .then((products) => {
+          res.json(products);
+        })
+        .catch((error) => {
+          next(error);
+        });
     });
-  }
-});
 
-// Route to retrieve the products collection
-app.get('/products', (req, res) => {
-  const collection = client.db(dbName).collection('products');
-  collection.find().toArray((err, products) => {
-    if (err) {
-      console.error(err);
-      res.status(500).send('Internal server error');
-    } else {
-      res.json(products);
-    }
+    // Start the server
+    app.listen(port, () => {
+      console.log(`Server started on port ${port}.`);
+    });
+  })
+  .catch((error) => {
+    console.error(error);
   });
-});
