@@ -102,12 +102,12 @@
 </template>
 
 <script>
-import { products } from "./products.js";
+// import { products } from "./products.js";
 
 export default {
   data() {
     return {
-      products: products,
+      products: [],
       search: "",
       sortByOptions: {
         type: "subject",
@@ -115,7 +115,14 @@ export default {
       },
     };
   },
-
+  mounted() {
+    fetch('/products')
+      .then(response => response.json())
+      .then(data => {
+        this.products = data;
+      })
+      .catch(error => console.error(error));
+  },
   methods: {
     addToCart(product) {
       this.$emit("addProduct", product);

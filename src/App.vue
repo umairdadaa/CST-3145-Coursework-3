@@ -140,7 +140,11 @@
 
     <div id="checkout">
       <checkOut
+        :cart="cart"
+        :cart-total="cartTotal"
+        :cart-count="cartCount"
         :checkout="checkOut"
+        @submit-checkout="submitCheckout"
         v-if="page === 'checkout'"
       ></checkOut>
     </div>
@@ -188,13 +192,15 @@ export default {
   name: "App",
   components: {
     ProductList,
-    Cart, checkOut
+    Cart,
+    checkOut,
   },
   data() {
     return {
       page: "home",
       products: [],
       cart: [],
+      checkOut: [],
     };
   },
 
@@ -243,6 +249,24 @@ export default {
         return false;
       }
     },
+
+    submitCheckout() {
+      this.cart.forEach((item) => {
+        item.cartquantity = 0;
+      });
+      this.cart = [];
+      Swal.fire(
+        "Thank you for your purchase!",
+        "Your order has been placed!",
+        "success"
+      ).then(() => {
+        setTimeout(() => {
+          this.navigateTo("home");
+        }, 1000);
+      });
+
+      event.preventDefault();
+    },
   },
 
   computed: {
@@ -253,6 +277,14 @@ export default {
       });
       console.log(count);
       return count;
+    },
+
+    cartTotal() {
+      let total = 0;
+      this.cart.forEach((item) => {
+        total += item.price * item.cartquantity;
+      });
+      return total;
     },
   },
 };
